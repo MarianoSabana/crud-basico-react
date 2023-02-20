@@ -5,17 +5,22 @@ import shortid from "shortid";
 function App() {
   const [tarea, setTarea] = React.useState("");
   const [tareas, setTareas] = React.useState([]);
+  const [modoEdicion, setModoEdicion] = React.useState(false);
+  const [id, setId] = React.useState("");
+  const [error, setError] = React.useState(null);
 
   const agregarTarea = (e) => {
     e.preventDefault();
     if (!tarea.trim()) {
-      console.log("Elemento Vacío");
+      // console.log("Elemento Vacío");
+      setError("Elemento vacío");
       return;
     }
 
     setTareas([...tareas, { id: shortid.generate(), nuevaTarea: tarea }]);
 
     setTarea("");
+    setError(null);
   };
 
   const eliminarTarea = (id) => {
@@ -23,6 +28,39 @@ function App() {
     const arrayFiltrado = tareas.filter((item) => item.id !== id);
     setTareas(arrayFiltrado);
   };
+
+  const editar = (item) => {
+    // console.log(item);
+    setModoEdicion(true);
+    setTarea(item.nuevaTarea);
+    setId(item.id);
+  };
+
+  const cancelar = () => {
+    setModoEdicion(false);
+    setTarea("");
+  };
+
+  const editarTarea = (e) => {
+    e.preventDefault();
+    if (!tarea.trim()) {
+      // console.log("Elemento Vacío");
+      setError("Elemento vacío");
+      return;
+    }
+
+    const arrayEditado = tareas.map((item) =>
+      item.id === id ? { id: id, nuevaTarea: tarea } : item
+    );
+
+    setTareas(arrayEditado);
+
+    setModoEdicion(false);
+    setTarea("");
+    setId("");
+    setError(null);
+  };
+
   return (
     <div className="container mt-5">
       <h1 className="text-center text-warning">MIS TAREAS DEL DÍA</h1>
@@ -31,39 +69,73 @@ function App() {
         <div className="col-8">
           <h4 className="text-center">Lista de tareas</h4>
           <ul className="list-group">
-            {tareas.map((item) => (
-              <li className="list-group-item" key={item.id}>
-                <span className="lead mb-2">{item.nuevaTarea}</span>
+            {tareas.length === 0 ? (
+              <li className="list-group-item">NO HAY TAREAS</li>
+            ) : (
+              tareas.map((item) => (
+                <li className="list-group-item" key={item.id}>
+                  <span className="lead mb-2">{item.nuevaTarea}</span>
 
-                <button
-                  className="btn btn-danger btn-sm float-end mx-2"
-                  onClick={() => {
-                    eliminarTarea(item.id);
-                  }}
-                >
-                  Eliminar
-                </button>
+                  <button
+                    className="btn btn-danger btn-sm float-end mx-2"
+                    onClick={() => {
+                      eliminarTarea(item.id);
+                    }}
+                  >
+                    Eliminar
+                  </button>
 
-                <button className="btn btn-warning btn-sm float-end">
-                  Editar
-                </button>
-              </li>
-            ))}
+                  <button
+                    className="btn btn-warning btn-sm float-end"
+                    onClick={() => {
+                      editar(item);
+                    }}
+                  >
+                    Editar
+                  </button>
+                </li>
+              ))
+            )}
           </ul>
         </div>
         <div className="col-4">
-          <h4 className="text-center">INGRESAR NUEVA TAREA</h4>
-          <form onSubmit={agregarTarea}>
+          <h4 className="text-center">
+            {modoEdicion ? `Editar Tarea` : `Insertar Tarea Nueva`}
+          </h4>
+          <form onSubmit={modoEdicion ? editarTarea : agregarTarea}>
+            {error ? <span className="text-danger">{error}</span> : null}
             <input
               type="text"
               className="form-control mb-2"
-              placeholder="Ingrese una Tarea"
+              placeholder={
+                modoEdicion
+                  ? "Ingrese la tarea editada"
+                  : "Ingrese una nueva tarea"
+              }
               onChange={(e) => setTarea(e.target.value)}
               value={tarea}
             />
-            <button className="btn btn-dark btn-block" type="submit">
-              Agregar
-            </button>
+
+            {modoEdicion ? (
+              <div>
+                <button className="btn btn-warning btn-block" type="submit">
+                  Editar
+                </button>
+                <button
+                  className="btn btn-dark btn-block mx-2"
+                  type="submit"
+                  onClick={() => {
+                    cancelar();
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button className="btn btn-dark btn-block" type="submit">
+                Agregar
+              </button>
+            )}
           </form>
         </div>
       </div>
