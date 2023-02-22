@@ -139,6 +139,8 @@ function App() {
           </form>
         </div>
       </div>
+      <hr />
+      <footer>MARIANO LUIS SABANA MENDOZA</footer>
     </div>
   );
 }
