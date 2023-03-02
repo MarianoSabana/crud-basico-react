@@ -2,12 +2,41 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import React from "react";
 import shortid from "shortid";
 
+// import { firebase } from "./firebase";
+import { useEffect } from "react";
+import { collection, getDocs, getFirestore } from "firebase/firestore";
+
+import { app } from "./firebase";
+
 function App() {
   const [tarea, setTarea] = React.useState("");
   const [tareas, setTareas] = React.useState([]);
   const [modoEdicion, setModoEdicion] = React.useState(false);
   const [id, setId] = React.useState("");
   const [error, setError] = React.useState(null);
+
+  useEffect(() => {
+    // const obtenerDatos = async () => {
+    //   try {
+    //     const db = app.firestore();
+    //     const data = await db.collection("tareas").get();
+    //     console.log(data.docs);
+    //   } catch (error) {}
+    // };
+
+    const db = getFirestore(app);
+    const obtenerDatos = async (db) => {
+      const tareasCol = collection(db, "tareas");
+      const tareaSnapshot = await getDocs(tareasCol);
+      const tareasList = tareaSnapshot.docs.map((doc) => {
+        console.log(doc.data().tarea);
+        setTareas([...tareas, { id: doc.id, nuevaTarea: doc.data().tarea }]);
+        console.log(doc.id);
+      });
+    };
+
+    obtenerDatos(db);
+  }, []);
 
   const agregarTarea = (e) => {
     e.preventDefault();
