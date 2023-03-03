@@ -38,7 +38,7 @@ function App() {
 
     try {
       const nuevoDocumento = await addDoc(collection(db, "tareas"), {
-        tarea: tarea,
+        nuevaTarea: tarea,
         fecha: Date.now(),
       });
       nuevoDocumento();
