@@ -4,9 +4,8 @@ import shortid from "shortid";
 
 // import { firebase } from "./firebase";
 import { useEffect } from "react";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
-
-import { app } from "./firebase";
+import { collection, getDocs, addDoc } from "firebase/firestore";
+import { db } from "./firebase";
 
 function App() {
   const [tarea, setTarea] = React.useState("");
@@ -16,34 +15,35 @@ function App() {
   const [error, setError] = React.useState(null);
 
   useEffect(() => {
-    // const obtenerDatos = async () => {
-    //   try {
-    //     const db = app.firestore();
-    //     const data = await db.collection("tareas").get();
-    //     console.log(data.docs);
-    //   } catch (error) {}
-    // };
-
-    const db = getFirestore(app);
     const obtenerDatos = async (db) => {
       const tareasCol = collection(db, "tareas");
       const tareaSnapshot = await getDocs(tareasCol);
-      const tareasList = tareaSnapshot.docs.map((doc) => {
-        console.log(doc.data().tarea);
-        setTareas([...tareas, { id: doc.id, nuevaTarea: doc.data().tarea }]);
-        console.log(doc.id);
-      });
+      const tareasList = tareaSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        nuevaTarea: doc.data().nuevaTarea,
+      }));
+      setTareas(tareasList);
     };
 
     obtenerDatos(db);
   }, []);
 
-  const agregarTarea = (e) => {
+  const agregarTarea = async (e) => {
     e.preventDefault();
     if (!tarea.trim()) {
       // console.log("Elemento Vacío");
       setError("Elemento vacío");
       return;
+    }
+
+    try {
+      const nuevoDocumento = await addDoc(collection(db, "tareas"), {
+        tarea: tarea,
+        fecha: Date.now(),
+      });
+      nuevoDocumento();
+    } catch (error) {
+      console.error("Error adding document: ", error);
     }
 
     setTareas([...tareas, { id: shortid.generate(), nuevaTarea: tarea }]);
