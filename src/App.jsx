@@ -1,10 +1,17 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import React from "react";
-import shortid from "shortid";
+// import shortid from "shortid";
 
 // import { firebase } from "./firebase";
 import { useEffect } from "react";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "./firebase";
 
 function App() {
@@ -41,19 +48,20 @@ function App() {
         nuevaTarea: tarea,
         fecha: Date.now(),
       });
-      nuevoDocumento();
+
+      setTareas([...tareas, { id: nuevoDocumento.id, nuevaTarea: tarea }]);
+      setTarea("");
+      setError(null);
     } catch (error) {
       console.error("Error adding document: ", error);
     }
-
-    setTareas([...tareas, { id: shortid.generate(), nuevaTarea: tarea }]);
-
-    setTarea("");
-    setError(null);
   };
 
-  const eliminarTarea = (id) => {
+  const eliminarTarea = async (id) => {
     // console.log(id);
+    try {
+      await deleteDoc(doc(db, "tareas", id));
+    } catch (error) {}
     const arrayFiltrado = tareas.filter((item) => item.id !== id);
     setTareas(arrayFiltrado);
   };
@@ -70,13 +78,17 @@ function App() {
     setTarea("");
   };
 
-  const editarTarea = (e) => {
+  const editarTarea = async (e) => {
     e.preventDefault();
     if (!tarea.trim()) {
       // console.log("Elemento Vacío");
       setError("Elemento vacío");
       return;
     }
+
+    try {
+      await updateDoc(doc(db, "tareas", e.id), { nuevaTarea: tarea });
+    } catch (error) {}
 
     const arrayEditado = tareas.map((item) =>
       item.id === id ? { id: id, nuevaTarea: tarea } : item
